@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
 import { Search, Plus, Edit, Trash2, Eye } from 'lucide-react';
 import { menuItems } from '../data/dummyData';
+import AddMenuModal from '../components/AddMenuModal';
+import { MenuItem } from '../types';
 
 const Menu: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('semua');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [menuList, setMenuList] = useState<MenuItem[]>(menuItems);
 
-  const filteredItems = menuItems.filter(item => {
+  const filteredItems = menuList.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'semua' || item.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
+
+  const handleAddMenu = (newMenu: MenuItem) => {
+    setMenuList(prev => [...prev, newMenu]);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -20,9 +28,9 @@ const Menu: React.FC = () => {
   };
 
   const categoryCounts = {
-    semua: menuItems.length,
-    makanan: menuItems.filter(item => item.category === 'makanan').length,
-    minuman: menuItems.filter(item => item.category === 'minuman').length,
+    semua: menuList.length,
+    makanan: menuList.filter(item => item.category === 'makanan').length,
+    minuman: menuList.filter(item => item.category === 'minuman').length,
   };
 
   return (
@@ -33,7 +41,10 @@ const Menu: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Manajemen Menu</h1>
           <p className="text-gray-600">Kelola menu makanan dan minuman</p>
         </div>
-        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+        >
           <Plus className="h-5 w-5 mr-2" />
           Tambah Menu
         </button>
@@ -132,6 +143,13 @@ const Menu: React.FC = () => {
           <p className="text-gray-500">Tidak ada menu yang ditemukan</p>
         </div>
       )}
+
+      {/* Add Menu Modal */}
+      <AddMenuModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSave={handleAddMenu}
+      />
     </div>
   );
 };

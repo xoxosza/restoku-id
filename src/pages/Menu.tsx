@@ -3,14 +3,21 @@ import { Search, Plus, Edit, Trash2, Eye } from 'lucide-react';
 import { useNotification } from '../hooks/useNotification';
 import { menuItems } from '../data/dummyData';
 import AddMenuModal from '../components/AddMenuModal';
+import ViewMenuModal from '../components/ViewMenuModal';
+import EditMenuModal from '../components/EditMenuModal';
+import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import { MenuItem } from '../types';
 
 const Menu: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('semua');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
   const [menuList, setMenuList] = useState<MenuItem[]>(menuItems);
-  const { showSuccess, showWarning } = useNotification();
+  const { showSuccess, showWarning, showError } = useNotification();
 
   const filteredItems = menuList.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -22,8 +29,38 @@ const Menu: React.FC = () => {
     setMenuList(prev => [...prev, newMenu]);
   };
 
-  const handleDeleteMenu = (menuId: string, menuName: string) => {
-    showWarning('Menu Dihapus', `Menu "${menuName}" telah dihapus dari daftar`);
+  const handleViewMenu = (menuItem: MenuItem) => {
+    setSelectedMenuItem(menuItem);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEditMenu = (menuItem: MenuItem) => {
+    setSelectedMenuItem(menuItem);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateMenu = (updatedMenu: MenuItem) => {
+    setMenuList(prev => prev.map(item => 
+      item.id === updatedMenu.id ? updatedMenu : item
+    ));
+  };
+
+  const handleDeleteMenu = (menuItem: MenuItem) => {
+    setSelectedMenuItem(menuItem);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteMenu = () => {
+    if (!selectedMenuItem) return;
+    
+    try {
+      setMenuList(prev => prev.filter(item => item.id !== selectedMenuItem.id));
+      showWarning('Menu Dihapus', `Menu "${selectedMenuItem.name}" telah dihapus dari daftar`);
+      setIsDeleteModalOpen(false);
+      setSelectedMenuItem(null);
+    } catch (error) {
+      showError('Gagal Menghapus', 'Terjadi kesalahan saat menghapus menu');
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -127,16 +164,22 @@ const Menu: React.FC = () => {
 
               {/* Actions */}
               <div className="flex items-center gap-2">
-                <button className="flex-1 flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200">
+                <button 
+                  onClick={() => handleViewMenu(item)}
+                  className="flex-1 flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                >
                   <Eye className="h-4 w-4 mr-1" />
                   Lihat
                 </button>
-                <button className="flex-1 flex items-center justify-center px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors duration-200">
+                <button 
+                  onClick={() => handleEditMenu(item)}
+                  className="flex-1 flex items-center justify-center px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+                >
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
                 </button>
                 <button 
-                  onClick={() => handleDeleteMenu(item.id, item.name)}
+                  onClick={() => handleDeleteMenu(item)}
                   className="flex items-center justify-center px-3 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors duration-200"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -158,6 +201,29 @@ const Menu: React.FC = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSave={handleAddMenu}
+      />
+
+      {/* View Menu Modal */}
+      <ViewMenuModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        menuItem={selectedMenuItem}
+      />
+
+      {/* Edit Menu Modal */}
+      <EditMenuModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleUpdateMenu}
+        menuItem={selectedMenuItem}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDeleteMenu}
+        menuItem={selectedMenuItem}
       />
     </div>
   );

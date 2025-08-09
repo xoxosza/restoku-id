@@ -1,17 +1,122 @@
 import React, { useState } from 'react';
-import { Search, Filter, Plus } from 'lucide-react';
+import { Search, Filter, Plus, Edit, Eye } from 'lucide-react';
+import { useNotification } from '../hooks/useNotification';
 import { orders } from '../data/dummyData';
+import AddOrderModal from '../components/AddOrderModal';
+import EditStatusModal from '../components/EditStatusModal';
+import FilterModal, { FilterOptions } from '../components/FilterModal';
+import { Order } from '../types';
 
 const Orders: React.FC = () => {
+  const { showSuccess, showInfo } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('semua');
+  const [orderList, setOrderList] = useState<Order[]>(orders);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditStatusModalOpen, setIsEditStatusModalOpen] = useState(false);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [activeFilters, setActiveFilters] = useState<FilterOptions>({
+    status: '',
+    dateRange: '',
+    tableNumber: '',
+    minTotal: '',
+    maxTotal: ''
+  });
 
-  const filteredOrders = orders.filter(order => {
+  const applyAdvancedFilters = (order: Order, filters: FilterOptions) => {
+    // Status filter
+    if (filters.status && order.status !== filters.status) {
+      return false;
+    }
+
+    // Table number filter
+    if (filters.tableNumber && order.tableNumber.toString() !== filters.tableNumber) {
+      return false;
+    }
+
+    // Total amount filter
+    if (filters.minTotal && order.total < parseInt(filters.minTotal)) {
+      return false;
+    }
+    if (filters.maxTotal && order.total > parseInt(filters.maxTotal)) {
+      return false;
+    }
+
+    // Date range filter
+    if (filters.dateRange) {
+      const orderDate = new Date(order.timestamp);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      switch (filters.dateRange) {
+        case 'today':
+          if (orderDate.toDateString() !== today.toDateString()) {
+            return false;
+          }
+          break;
+        case 'yesterday':
+          if (orderDate.toDateString() !== yesterday.toDateString()) {
+            return false;
+          }
+          break;
+        case 'week':
+          const weekAgo = new Date(today);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          if (orderDate < weekAgo) {
+            return false;
+          }
+          break;
+        case 'month':
+          const monthAgo = new Date(today);
+          monthAgo.setDate(monthAgo.getDate() - 30);
+          if (orderDate < monthAgo) {
+            return false;
+          }
+          break;
+      }
+    }
+
+    return true;
+  };
+
+  const filteredOrders = orderList.filter(order => {
     const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.tableNumber.toString().includes(searchTerm);
     const matchesStatus = statusFilter === 'semua' || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesAdvancedFilters = applyAdvancedFilters(order, activeFilters);
+    return matchesSearch && matchesStatus && matchesAdvancedFilters;
   });
+
+  const handleAddOrder = (newOrder: Order) => {
+    setOrderList(prev => [newOrder, ...prev]);
+  };
+
+  const handleEditStatus = (order: Order) => {
+    setSelectedOrder(order);
+    setIsEditStatusModalOpen(true);
+  };
+
+  const handleUpdateStatus = (orderId: string, newStatus: string) => {
+    setOrderList(prev => prev.map(order => 
+      order.id === orderId ? { ...order, status: newStatus as any } : order
+    ));
+  };
+
+  const handleApplyFilter = (filters: FilterOptions) => {
+    setActiveFilters(filters);
+    const activeFilterCount = Object.values(filters).filter(value => value !== '').length;
+    if (activeFilterCount > 0) {
+      showInfo('Filter Diterapkan', `${activeFilterCount} filter aktif diterapkan`);
+    } else {
+      showInfo('Filter Direset', 'Semua filter telah dihapus');
+    }
+  };
+
+  const handleViewOrder = (order: Order) => {
+    showInfo('Detail Pesanan', `Menampilkan detail untuk ${order.orderNumber}`);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -31,12 +136,14 @@ const Orders: React.FC = () => {
   };
 
   const statusCounts = {
-    semua: orders.length,
-    menunggu: orders.filter(o => o.status === 'menunggu').length,
-    dimasak: orders.filter(o => o.status === 'dimasak').length,
-    siap: orders.filter(o => o.status === 'siap').length,
-    selesai: orders.filter(o => o.status === 'selesai').length,
+    semua: orderList.length,
+    menunggu: orderList.filter(o => o.status === 'menunggu').length,
+    dimasak: orderList.filter(o => o.status === 'dimasak').length,
+    siap: orderList.filter(o => o.status === 'siap').length,
+    selesai: orderList.filter(o => o.status === 'selesai').length,
   };
+
+  const hasActiveFilters = Object.values(activeFilters).some(value => value !== '');
 
   return (
     <div className="space-y-6">
@@ -46,7 +153,10 @@ const Orders: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Manajemen Pesanan</h1>
           <p className="text-gray-600">Kelola semua pesanan restoran</p>
         </div>
-        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+        >
           <Plus className="h-5 w-5 mr-2" />
           Tambah Pesanan
         </button>
@@ -83,9 +193,16 @@ const Orders: React.FC = () => {
             className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
-        <button className="flex items-center px-4 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-          <Filter className="h-5 w-5 text-gray-400 mr-2" />
-          Filter
+        <button 
+          onClick={() => setIsFilterModalOpen(true)}
+          className={`flex items-center px-4 py-2.5 border rounded-lg transition-colors duration-200 ${
+            hasActiveFilters 
+              ? 'border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100' 
+              : 'border-gray-200 hover:bg-gray-50'
+          }`}
+        >
+          <Filter className={`h-5 w-5 mr-2 ${hasActiveFilters ? 'text-blue-600' : 'text-gray-400'}`} />
+          Filter {hasActiveFilters && `(${Object.values(activeFilters).filter(v => v !== '').length})`}
         </button>
       </div>
 
@@ -112,6 +229,9 @@ const Orders: React.FC = () => {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Total
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Aksi
                 </th>
               </tr>
             </thead>
@@ -152,6 +272,24 @@ const Orders: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{formatCurrency(order.total)}</div>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleViewOrder(order)}
+                        className="text-gray-600 hover:text-gray-900 p-1 rounded transition-colors duration-200"
+                        title="Lihat Detail"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleEditStatus(order)}
+                        className="text-blue-600 hover:text-blue-900 p-1 rounded transition-colors duration-200"
+                        title="Edit Status"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -164,6 +302,29 @@ const Orders: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Add Order Modal */}
+      <AddOrderModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSave={handleAddOrder}
+      />
+
+      {/* Edit Status Modal */}
+      <EditStatusModal
+        isOpen={isEditStatusModalOpen}
+        onClose={() => setIsEditStatusModalOpen(false)}
+        onSave={handleUpdateStatus}
+        order={selectedOrder}
+      />
+
+      {/* Filter Modal */}
+      <FilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        onApplyFilter={handleApplyFilter}
+        currentFilters={activeFilters}
+      />
     </div>
   );
 };

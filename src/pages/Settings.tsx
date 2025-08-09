@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Save, User, MapPin, Phone, Mail, Key, Users } from 'lucide-react';
+import { useNotification } from '../hooks/useNotification';
 import { restaurantInfo, users } from '../data/dummyData';
 
 const Settings: React.FC = () => {
   const [restaurantData, setRestaurantData] = useState(restaurantInfo);
   const [activeTab, setActiveTab] = useState('restaurant');
+  const { showSuccess, showError } = useNotification();
 
   const handleRestaurantChange = (field: string, value: string) => {
     setRestaurantData(prev => ({
@@ -14,8 +16,15 @@ const Settings: React.FC = () => {
   };
 
   const handleSaveSettings = () => {
-    // Simulasi penyimpanan data
-    alert('Pengaturan berhasil disimpan!');
+    try {
+      // Simulasi penyimpanan data
+      showSuccess(
+        'Pengaturan Berhasil Disimpan',
+        'Semua perubahan telah disimpan dengan sukses'
+      );
+    } catch (error) {
+      showError('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan pengaturan');
+    }
   };
 
   const tabs = [

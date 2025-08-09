@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Plus, Edit, Trash2, Eye } from 'lucide-react';
+import { useNotification } from '../hooks/useNotification';
 import { menuItems } from '../data/dummyData';
 import AddMenuModal from '../components/AddMenuModal';
 import { MenuItem } from '../types';
@@ -9,6 +10,7 @@ const Menu: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState('semua');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [menuList, setMenuList] = useState<MenuItem[]>(menuItems);
+  const { showSuccess, showWarning } = useNotification();
 
   const filteredItems = menuList.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -18,6 +20,10 @@ const Menu: React.FC = () => {
 
   const handleAddMenu = (newMenu: MenuItem) => {
     setMenuList(prev => [...prev, newMenu]);
+  };
+
+  const handleDeleteMenu = (menuId: string, menuName: string) => {
+    showWarning('Menu Dihapus', `Menu "${menuName}" telah dihapus dari daftar`);
   };
 
   const formatCurrency = (amount: number) => {
@@ -129,7 +135,10 @@ const Menu: React.FC = () => {
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
                 </button>
-                <button className="flex items-center justify-center px-3 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors duration-200">
+                <button 
+                  onClick={() => handleDeleteMenu(item.id, item.name)}
+                  className="flex items-center justify-center px-3 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors duration-200"
+                >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>

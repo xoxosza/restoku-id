@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Upload, Save } from 'lucide-react';
+import { useNotification } from '../hooks/useNotification';
 
 interface AddMenuModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface AddMenuModalProps {
 
 const AddMenuModal: React.FC<AddMenuModalProps> = ({ isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({
+  const { showSuccess, showError } = useNotification();
     name: '',
     price: '',
     category: 'makanan',
@@ -77,6 +79,10 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ isOpen, onClose, onSave }) 
       reader.readAsDataURL(file);
     } catch (error) {
       setErrors(prev => ({
+      showError(
+        'Gagal Upload',
+        'Terjadi kesalahan saat mengupload gambar'
+      );
         ...prev,
         image: 'Gagal mengupload gambar'
       }));
@@ -109,8 +115,14 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ isOpen, onClose, onSave }) 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (validateForm()) {
+    try {
+      if (!validateForm()) {
+        showError('Validasi Gagal', 'Mohon periksa kembali data yang dimasukkan');
+        return;
+      }
+
       const menuData = {
+      showSuccess('Menu Berhasil Ditambahkan', `Menu "${formData.name}" telah ditambahkan ke daftar`);
         ...formData,
         id: Date.now().toString(),
         price: parseFloat(formData.price)
@@ -118,6 +130,8 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ isOpen, onClose, onSave }) 
       
       onSave(menuData);
       handleClose();
+    } catch (error) {
+      showError('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan menu');
     }
   };
 

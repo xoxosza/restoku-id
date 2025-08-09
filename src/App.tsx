@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import Layout from './components/Layout';
+import NotificationContainer from './components/NotificationContainer';
+import { useNotification } from './hooks/useNotification';
 import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';
 import Menu from './pages/Menu';
@@ -8,6 +10,7 @@ import Settings from './pages/Settings';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const { notifications, removeNotification } = useNotification();
 
   const renderPage = () => {
     switch (currentPage) {
@@ -27,9 +30,15 @@ function App() {
   };
 
   return (
-    <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
-      {renderPage()}
-    </Layout>
+    <>
+      <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
+        {renderPage()}
+      </Layout>
+      <NotificationContainer
+        notifications={notifications}
+        onClose={removeNotification}
+      />
+    </>
   );
 }
 

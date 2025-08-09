@@ -6,7 +6,7 @@ export const menuItems: MenuItem[] = [
     name: 'Nasi Goreng Spesial',
     price: 25000,
     category: 'makanan',
-    image: 'https://images.pexels.com/photos/1893556/pexels-photo-1893556.jpeg',
+    image: 'https://images.pexels.com/photos/1893556/pexels-photo-1893556.jpeg?auto=compress&cs=tinysrgb&w=800',
     available: true,
     description: 'Nasi goreng dengan telur, ayam, dan sayuran segar'
   },
@@ -15,7 +15,7 @@ export const menuItems: MenuItem[] = [
     name: 'Ayam Bakar Madu',
     price: 35000,
     category: 'makanan',
-    image: 'https://images.pexels.com/photos/2338407/pexels-photo-2338407.jpeg',
+    image: 'https://images.pexels.com/photos/2338407/pexels-photo-2338407.jpeg?auto=compress&cs=tinysrgb&w=800',
     available: true,
     description: 'Ayam bakar dengan bumbu madu spesial'
   },
@@ -24,7 +24,7 @@ export const menuItems: MenuItem[] = [
     name: 'Sate Ayam',
     price: 30000,
     category: 'makanan',
-    image: 'https://images.pexels.com/photos/4449068/pexels-photo-4449068.jpeg',
+    image: 'https://images.pexels.com/photos/4449068/pexels-photo-4449068.jpeg?auto=compress&cs=tinysrgb&w=800',
     available: false,
     description: '10 tusuk sate ayam dengan bumbu kacang'
   },
@@ -33,7 +33,7 @@ export const menuItems: MenuItem[] = [
     name: 'Es Teh Manis',
     price: 8000,
     category: 'minuman',
-    image: 'https://images.pexels.com/photos/1251175/pexels-photo-1251175.jpeg',
+    image: 'https://images.pexels.com/photos/1251175/pexels-photo-1251175.jpeg?auto=compress&cs=tinysrgb&w=800',
     available: true,
     description: 'Es teh manis segar'
   },
@@ -42,7 +42,7 @@ export const menuItems: MenuItem[] = [
     name: 'Jus Jeruk',
     price: 15000,
     category: 'minuman',
-    image: 'https://images.pexels.com/photos/1553978/pexels-photo-1553978.jpeg',
+    image: 'https://images.pexels.com/photos/1553978/pexels-photo-1553978.jpeg?auto=compress&cs=tinysrgb&w=800',
     available: true,
     description: 'Jus jeruk segar tanpa pengawet'
   },
@@ -51,7 +51,7 @@ export const menuItems: MenuItem[] = [
     name: 'Kopi Hitam',
     price: 12000,
     category: 'minuman',
-    image: 'https://images.pexels.com/photos/312418/pexels-photo-312418.jpeg',
+    image: 'https://images.pexels.com/photos/312418/pexels-photo-312418.jpeg?auto=compress&cs=tinysrgb&w=800',
     available: true,
     description: 'Kopi hitam arabika premium'
   }

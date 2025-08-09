@@ -78,11 +78,11 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ isOpen, onClose, onSave }) 
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      setErrors(prev => ({
       showError(
         'Gagal Upload',
         'Terjadi kesalahan saat mengupload gambar'
       );
+      setErrors(prev => ({
         ...prev,
         image: 'Gagal mengupload gambar'
       }));
@@ -121,8 +121,9 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ isOpen, onClose, onSave }) 
         return;
       }
 
-      const menuData = {
       showSuccess('Menu Berhasil Ditambahkan', `Menu "${formData.name}" telah ditambahkan ke daftar`);
+      
+      const menuData = {
         ...formData,
         id: Date.now().toString(),
         price: parseFloat(formData.price)

@@ -6,6 +6,7 @@ import { restaurantInfo, users } from '../data/dummyData';
 const Settings: React.FC = () => {
   const [restaurantData, setRestaurantData] = useState(restaurantInfo);
   const [activeTab, setActiveTab] = useState('restaurant');
+  const [isSaving, setIsSaving] = useState(false);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [newUser, setNewUser] = useState({
     username: '',
@@ -24,31 +25,41 @@ const Settings: React.FC = () => {
   };
 
   const handleSaveSettings = () => {
+    setIsSaving(true);
     try {
       // Validasi data restoran
       if (!restaurantData.name.trim()) {
+        setIsSaving(false);
         showError('Validasi Gagal', 'Nama restoran harus diisi');
         return;
       }
       if (!restaurantData.phone.trim()) {
+        setIsSaving(false);
         showError('Validasi Gagal', 'Nomor telepon harus diisi');
         return;
       }
       if (!restaurantData.email.trim()) {
+        setIsSaving(false);
         showError('Validasi Gagal', 'Email harus diisi');
         return;
       }
       if (!restaurantData.address.trim()) {
+        setIsSaving(false);
         showError('Validasi Gagal', 'Alamat harus diisi');
         return;
       }
 
-      // Simulasi penyimpanan data
-      showSuccess(
-        'Pengaturan Berhasil Disimpan',
-        'Semua perubahan telah disimpan dengan sukses'
-      );
+      // Simulasi proses penyimpanan dengan delay
+      setTimeout(() => {
+        setIsSaving(false);
+        showSuccess(
+          'Pengaturan Berhasil Disimpan',
+          'Semua perubahan telah disimpan dengan sukses'
+        );
+      }, 1000);
+      
     } catch (error) {
+      setIsSaving(false);
       showError('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan pengaturan');
     }
   };
@@ -238,10 +249,15 @@ const Settings: React.FC = () => {
               <div className="pt-6 border-t border-gray-200">
                 <button
                   onClick={handleSaveSettings}
-                  className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                  disabled={isSaving}
+                  className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 ${
+                    isSaving 
+                      ? 'bg-blue-400 text-white cursor-not-allowed' 
+                      : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
+                  }`}
                 >
-                  <Save className="h-5 w-5 mr-2" />
-                  Simpan Perubahan
+                  <Save className={`h-5 w-5 mr-2 ${isSaving ? 'animate-spin' : ''}`} />
+                  {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
                 </button>
               </div>
             </div>

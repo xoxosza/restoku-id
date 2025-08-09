@@ -18,6 +18,7 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ isOpen, onClose, onSave }) 
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
@@ -34,6 +35,54 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ isOpen, onClose, onSave }) 
     }
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setErrors(prev => ({
+        ...prev,
+        image: 'File harus berupa gambar'
+      }));
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(prev => ({
+        ...prev,
+        image: 'Ukuran file maksimal 5MB'
+      }));
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      // Convert to base64 for preview (in real app, upload to server)
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        handleInputChange('image', result);
+        setIsUploading(false);
+      };
+      reader.onerror = () => {
+        setErrors(prev => ({
+          ...prev,
+          image: 'Gagal membaca file'
+        }));
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      setErrors(prev => ({
+        ...prev,
+        image: 'Gagal mengupload gambar'
+      }));
+      setIsUploading(false);
+    }
+  };
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -82,6 +131,7 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ isOpen, onClose, onSave }) 
       available: true
     });
     setErrors({});
+    setIsUploading(false);
     onClose();
   };
 
@@ -175,7 +225,7 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ isOpen, onClose, onSave }) 
           {/* URL Gambar */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              URL Gambar *
+              Gambar Menu *
             </label>
             <div className="flex gap-2">
               <input
@@ -185,14 +235,27 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ isOpen, onClose, onSave }) 
                 className={`flex-1 px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors.image ? 'border-red-300' : 'border-gray-200'
                 }`}
-                placeholder="https://example.com/image.jpg"
+                placeholder="https://example.com/image.jpg atau upload file"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                id="image-upload"
               />
               <button
                 type="button"
-                className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center"
+                onClick={() => document.getElementById('image-upload')?.click()}
+                disabled={isUploading}
+                className={`px-4 py-2.5 rounded-lg transition-colors duration-200 flex items-center ${
+                  isUploading 
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
               >
-                <Upload className="h-4 w-4 mr-2" />
-                Upload
+                <Upload className={`h-4 w-4 mr-2 ${isUploading ? 'animate-spin' : ''}`} />
+                {isUploading ? 'Uploading...' : 'Upload'}
               </button>
             </div>
             {errors.image && <p className="text-red-500 text-sm mt-1">{errors.image}</p>}
@@ -200,12 +263,16 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ isOpen, onClose, onSave }) 
             {/* Preview Gambar */}
             {formData.image && (
               <div className="mt-3">
+                <p className="text-sm text-gray-600 mb-2">Preview:</p>
                 <img
                   src={formData.image}
                   alt="Preview"
-                  className="w-32 h-24 object-cover rounded-lg border border-gray-200"
+                  className="w-40 h-32 object-cover rounded-lg border border-gray-200 shadow-sm"
                   onError={(e) => {
-                    e.currentTarget.style.display = 'none';
+                    setErrors(prev => ({
+                      ...prev,
+                      image: 'Gambar tidak dapat dimuat'
+                    }));
                   }}
                 />
               </div>

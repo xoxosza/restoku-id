@@ -9,8 +9,8 @@ interface AddMenuModalProps {
 }
 
 const AddMenuModal: React.FC<AddMenuModalProps> = ({ isOpen, onClose, onSave }) => {
-  const [formData, setFormData] = useState({
   const { showSuccess, showError } = useNotification();
+  const [formData, setFormData] = useState({
     name: '',
     price: '',
     category: 'makanan',
